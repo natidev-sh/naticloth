@@ -5,6 +5,7 @@ import { ShoppingBag, Search, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useCartStore } from "@/store/cart-store"
+import { ThemeToggle } from "@/components/ThemeToggle"
 
 export function Navbar() {
   const cartItems = useCartStore((state) => state.items)
