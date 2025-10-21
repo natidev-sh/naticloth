@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
-import Image from "next/image"
 import { notFound } from "next/navigation"
 import { ProductCard } from "@/components/ProductCard"
 import { AddToCartButton } from "@/components/AddToCartButton"
-import { ShoppingBag } from "lucide-react"
+import { ProductGallery } from "@/components/ProductGallery"
 
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
   const { id } = params
@@ -29,22 +28,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   return (
     <div className="container py-16 md:py-24">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-        <div className="relative aspect-square rounded-sm border-2 border-foreground bg-background p-2 neo-shadow">
-           <div className="h-full w-full overflow-hidden rounded-sm bg-muted">
-              {product.image_urls && product.image_urls[0] ? (
-                <Image
-                  src={product.image_urls[0]}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <ShoppingBag className="h-24 w-24 text-muted-foreground/20" />
-                </div>
-              )}
-           </div>
-        </div>
+        <ProductGallery images={product.image_urls} productName={product.name} />
         <div className="flex flex-col justify-center">
           <span className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">{product.category}</span>
           <h1 className="mt-2 text-4xl font-black tracking-tighter md:text-6xl">{product.name}</h1>

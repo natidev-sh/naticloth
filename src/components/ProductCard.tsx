@@ -22,7 +22,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-sm border-2 border-foreground bg-background transition-all hover:-translate-y-1 hover:neo-shadow">
-      <Link href={`/product/${product.id}`}>
+      <Link href={`/product/${product.id}`} className="relative block">
         <div className="aspect-square overflow-hidden bg-muted">
           {product.image_urls && product.image_urls[0] ? (
             <Image
@@ -36,16 +36,16 @@ export function ProductCard({ product }: ProductCardProps) {
               <ShoppingBag className="h-16 w-16 text-muted-foreground/20" />
             </div>
           )}
+          <div className="absolute inset-0 flex items-end bg-black/50 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+            <h3 className="text-xl font-bold tracking-tight text-white">
+              {product.name}
+            </h3>
+          </div>
         </div>
       </Link>
       <div className="flex flex-1 flex-col p-4">
-        <Link href={`/product/${product.id}`}>
-          <h3 className="text-xl font-bold tracking-tight">
-            {product.name}
-          </h3>
-        </Link>
-        <p className="mt-1 text-lg font-semibold text-muted-foreground">{product.category}</p>
-        <p className="mt-4 text-2xl font-black">${product.price.toFixed(2)}</p>
+        <p className="text-md font-semibold text-muted-foreground">{product.category}</p>
+        <p className="mt-2 text-2xl font-black">${product.price.toFixed(2)}</p>
       </div>
       <div className="p-4 pt-0">
         <Button variant="neo" className="w-full" onClick={handleAddToCart}>
