@@ -4,13 +4,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-const categories = ["All", "Men", "Women", "Accessories"]
-
-export function ShopFilters() {
+export function ShopFilters({ categories }: { categories: { name: string }[] }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const currentCategory = searchParams.get("category") || "All"
+
+  const allCategories = ["All", ...categories.map(c => c.name)]
 
   const handleFilter = (category: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -24,7 +24,7 @@ export function ShopFilters() {
 
   return (
     <div className="flex flex-wrap items-center gap-2 mb-12">
-      {categories.map((category) => (
+      {allCategories.map((category) => (
         <Button
           key={category}
           variant={currentCategory === category ? "neo" : "outline"}

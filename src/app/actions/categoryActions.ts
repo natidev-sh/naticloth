@@ -4,16 +4,11 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
-const productSchema = z.object({
+const categorySchema = z.object({
   name: z.string().min(1, "Name is required"),
-  description: z.string().optional(),
-  price: z.coerce.number().min(0, "Price must be positive"),
-  category: z.string().min(1, "Category is required"),
-  image_urls: z.array(z.string().url("Please provide valid URLs")).optional().default([]),
-  featured: z.boolean().default(false),
 })
 
-export async function upsertProduct(formData: unknown, id?: string) {
+export async function upsertCategory(formData: unknown, id?: string) {
   const supabase = createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -22,7 +17,7 @@ export async function upsertProduct(formData: unknown, id?: string) {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return { success: false, error: "Not authorized" }
 
-  const parsed = productSchema.safeParse(formData)
+  const parsed = categorySchema.safeParse(formData)
   if (!parsed.success) {
     return { success: false, error: parsed.error.errors.map(e => e.message).join(', ') }
   }
@@ -32,7 +27,7 @@ export async function upsertProduct(formData: unknown, id?: string) {
     ...(id && { id }),
   }
 
-  const { error } = await supabase.from("natishop_products").upsert(dataToUpsert)
+  const { error } = await supabase.from("natishop_categories").upsert(dataToUpsert)
 
   if (error) {
     console.error("Supabase error:", error.message)
@@ -40,14 +35,12 @@ export async function upsertProduct(formData: unknown, id?: string) {
   }
 
   revalidatePath("/admin")
-  revalidatePath("/")
   revalidatePath("/shop")
-  revalidatePath(`/product/${id}`)
 
   return { success: true }
 }
 
-export async function deleteProduct(id: string) {
+export async function deleteCategory(id: string) {
   const supabase = createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -56,7 +49,8 @@ export async function deleteProduct(id: string) {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return { success: false, error: "Not authorized" }
 
-  const { error } = await supabase.from("natishop_products").delete().eq("id", id)
+  // TODO: Check if any product is using this category before deleting.
+  const { error } = await supabase.from("natishop_categories").delete().eq("id", id)
 
   if (error) {
     console.error("Supabase error:", error.message)
@@ -64,7 +58,6 @@ export async function deleteProduct(id: string) {
   }
 
   revalidatePath("/admin")
-  revalidatePath("/")
   revalidatePath("/shop")
 
   return { success: true }

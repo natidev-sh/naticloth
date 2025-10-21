@@ -6,13 +6,16 @@ export default async function ShopPage({ searchParams }: { searchParams: { categ
   const category = searchParams.category
   const supabase = createClient()
 
-  let query = supabase.from('natishop_products').select('*')
+  let productsQuery = supabase.from('natishop_products').select('*')
 
   if (category && category !== "All") {
-    query = query.eq('category', category)
+    productsQuery = productsQuery.eq('category', category)
   }
 
-  const { data: filteredProducts } = await query.order('created_at', { ascending: false })
+  const productsPromise = productsQuery.order('created_at', { ascending: false })
+  const categoriesPromise = supabase.from('natishop_categories').select('name').order('name')
+
+  const [{ data: filteredProducts }, { data: categories }] = await Promise.all([productsPromise, categoriesPromise])
 
   return (
     <div className="container py-16 md:py-24">
@@ -20,7 +23,7 @@ export default async function ShopPage({ searchParams }: { searchParams: { categ
       <p className="text-lg text-muted-foreground mb-8">
         Explore our curated collection of high-fashion statements.
       </p>
-      <ShopFilters />
+      <ShopFilters categories={categories ?? []} />
       {filteredProducts && filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {filteredProducts.map(product => (

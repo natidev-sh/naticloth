@@ -35,13 +35,13 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Edit } from "lucide-react"
 import { upsertProduct } from "@/app/actions/productActions"
 import { toast } from "sonner"
-import { Product } from "@/types"
+import { Product, Category } from "@/types"
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   price: z.coerce.number().min(0, "Price must be positive"),
-  category: z.enum(["Men", "Women", "Accessories"]),
+  category: z.string().min(1, "Category is required"),
   image_urls: z.string().transform(val => val ? val.split(',').map(s => s.trim()).filter(s => s) : []),
   featured: z.boolean().default(false),
 })
@@ -50,9 +50,10 @@ type ProductFormValues = z.infer<typeof productSchema>
 
 interface ProductFormProps {
   productToEdit?: Product
+  categories: Category[]
 }
 
-export function ProductForm({ productToEdit }: ProductFormProps) {
+export function ProductForm({ productToEdit, categories }: ProductFormProps) {
   const [open, setOpen] = useState(false)
   const isEditMode = !!productToEdit
 
@@ -62,7 +63,7 @@ export function ProductForm({ productToEdit }: ProductFormProps) {
       name: productToEdit?.name ?? "",
       description: productToEdit?.description ?? "",
       price: productToEdit?.price ?? 0,
-      category: productToEdit?.category ?? "Men",
+      category: productToEdit?.category ?? (categories[0]?.name || ""),
       image_urls: productToEdit?.image_urls ?? [],
       featured: productToEdit?.featured ?? false,
     },
@@ -151,9 +152,9 @@ export function ProductForm({ productToEdit }: ProductFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Men">Men</SelectItem>
-                      <SelectItem value="Women">Women</SelectItem>
-                      <SelectItem value="Accessories">Accessories</SelectItem>
+                      {categories.map(category => (
+                        <SelectItem key={category.id} value={category.name}>{category.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

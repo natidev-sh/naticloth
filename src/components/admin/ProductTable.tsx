@@ -12,9 +12,9 @@ import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import { ProductForm } from "./ProductForm"
 import { DeleteProductButton } from "./DeleteProductButton"
-import { Product } from "@/types"
+import { Product, Category } from "@/types"
 
-export function ProductTable({ products }: { products: Product[] }) {
+export function ProductTable({ products, categories }: { products: Product[], categories: Category[] }) {
   return (
     <div className="rounded-sm border-2 border-foreground neo-shadow">
       <Table>
@@ -61,7 +61,7 @@ export function ProductTable({ products }: { products: Product[] }) {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <ProductForm productToEdit={product} />
+                  <ProductForm productToEdit={product} categories={categories} />
                   <DeleteProductButton productId={product.id} />
                 </div>
               </TableCell>
