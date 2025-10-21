@@ -1,0 +1,40 @@
+"use client"
+
+import { createClient } from "@/lib/supabase/client"
+import { Auth } from "@supabase/auth-ui-react"
+import { ThemeSupa } from "@supabase/auth-ui-shared"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/components/ui/use-toast"
+
+export default function LoginPage() {
+  const supabase = createClient()
+  const router = useRouter()
+  const { toast } = useToast()
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        router.push('/')
+        toast({
+          title: "Successfully logged in!",
+        })
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase, router, toast])
+
+  return (
+    <div className="container flex min-h-[calc(100vh-160px)] items-center justify-center py-12">
+      <div className="w-full max-w-md rounded-sm border-2 border-foreground p-8 neo-shadow">
+        <Auth
+          supabaseClient={supabase}
+          appearance={{ theme: ThemeSupa }}
+          providers={['github', 'google']}
+          theme="dark"
+        />
+      </div>
+    </div>
+  )
+}

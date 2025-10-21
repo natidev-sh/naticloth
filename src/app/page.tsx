@@ -32,7 +32,7 @@ export default function Home() {
              <div className="absolute inset-0 rounded-sm border-2 border-foreground bg-background p-2 transition-all neo-shadow">
                 <div className="h-full w-full overflow-hidden rounded-sm">
                     <Image 
-                        src="https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto-format&fit=crop"
+                        src="https://images.unsplash.com/photo-1681557146557-f77b8683ef4d?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1471"
                         alt="High fashion model"
                         fill
                         className="object-cover"
