@@ -32,17 +32,19 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, Edit } from "lucide-react"
+import { Plus, Edit, X } from "lucide-react"
 import { upsertProduct } from "@/app/actions/productActions"
 import { toast } from "sonner"
 import { Product, Category } from "@/types"
+import { ImageUploadModal } from "./ImageUploadModal"
+import Image from "next/image"
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   price: z.coerce.number().min(0, "Price must be positive"),
   category: z.string().min(1, "Category is required"),
-  image_urls: z.string().transform(val => val ? val.split(',').map(s => s.trim()).filter(s => s) : []),
+  image_urls: z.array(z.string().url()).optional().default([]),
   featured: z.boolean().default(false),
 })
 
@@ -79,6 +81,18 @@ export function ProductForm({ productToEdit, categories }: ProductFormProps) {
       toast.error(result.error)
     }
   }
+
+  const handleImageUpload = (url: string) => {
+    const currentUrls = form.getValues("image_urls")
+    form.setValue("image_urls", [...currentUrls, url])
+  }
+
+  const removeImage = (urlToRemove: string) => {
+    const currentUrls = form.getValues("image_urls")
+    form.setValue("image_urls", currentUrls.filter(url => url !== urlToRemove))
+  }
+
+  const imageUrls = form.watch("image_urls")
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -161,23 +175,31 @@ export function ProductForm({ productToEdit, categories }: ProductFormProps) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="image_urls"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Image URLs</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Comma-separated URLs" 
-                      {...field} 
-                      value={Array.isArray(field.value) ? field.value.join(', ') : ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormItem>
+              <FormLabel>Images</FormLabel>
+              <div className="flex flex-wrap gap-2">
+                {imageUrls.map(url => (
+                  <div key={url} className="relative h-20 w-20">
+                    <Image src={url} alt="Product image" fill className="rounded-sm border-2 border-foreground object-cover" />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -right-2 -top-2 h-6 w-6 rounded-full"
+                      onClick={() => removeImage(url)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <FormControl>
+                <ImageUploadModal onUploadSuccess={handleImageUpload}>
+                  <Button type="button" variant="outline" className="mt-2">Add Image</Button>
+                </ImageUploadModal>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
             <FormField
               control={form.control}
               name="featured"
