@@ -18,6 +18,8 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { toast } from "sonner"
+import { createOrder } from "@/app/actions/orderActions"
+import { Loader2 } from "lucide-react"
 
 const checkoutSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -25,6 +27,9 @@ const checkoutSchema = z.object({
   address: z.string().min(5, "Address is too short."),
   city: z.string().min(2, "City is required."),
   zip: z.string().min(5, "A 5-digit ZIP code is required.").max(5),
+  card_number: z.string().length(16, "Card number must be 16 digits."),
+  card_expiry: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "Expiry must be in MM/YY format."),
+  card_cvc: z.string().length(3, "CVC must be 3 digits."),
 })
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>
@@ -44,14 +49,21 @@ export default function CheckoutPage() {
       address: "",
       city: "",
       zip: "",
+      card_number: "",
+      card_expiry: "",
+      card_cvc: "",
     },
   })
 
-  const onSubmit = (values: CheckoutFormValues) => {
-    console.log("Form submitted (demo):", values)
-    toast.success("Order placed successfully!")
-    clearCart()
-    router.push("/order-confirmation")
+  const onSubmit = async (values: CheckoutFormValues) => {
+    const result = await createOrder(items, values)
+    if (result.success) {
+      toast.success("Order placed successfully!")
+      clearCart()
+      router.push(`/order-confirmation?orderId=${result.orderId}`)
+    } else {
+      toast.error(result.error)
+    }
   }
 
   if (items.length === 0) {
@@ -73,48 +85,43 @@ export default function CheckoutPage() {
       <h1 className="mb-12 text-center text-4xl font-black tracking-tighter md:text-6xl">Checkout</h1>
       <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
         <div className="rounded-sm border-2 border-foreground p-8 neo-shadow order-last lg:order-first">
-          <h2 className="mb-6 text-2xl font-bold">Shipping Information</h2>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <h2 className="text-2xl font-bold">Shipping Information</h2>
               <FormField control={form.control} name="name" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl><Input {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
+                <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="email" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl><Input type="email" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
+                <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="address" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Street Address</FormLabel>
-                  <FormControl><Input {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
+                <FormItem><FormLabel>Street Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
               )} />
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="city" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>City</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="zip" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ZIP Code</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>ZIP Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
               </div>
-              <Button type="submit" variant="neo" size="lg" className="w-full bg-primary text-primary-foreground">
-                Place Order (Demo)
+              
+              <h2 className="pt-6 text-2xl font-bold border-t-2 border-dashed">Payment Details (Demo)</h2>
+              <FormField control={form.control} name="card_number" render={({ field }) => (
+                <FormItem><FormLabel>Card Number</FormLabel><FormControl><Input placeholder="1111222233334444" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="card_expiry" render={({ field }) => (
+                  <FormItem><FormLabel>Expiry (MM/YY)</FormLabel><FormControl><Input placeholder="12/25" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="card_cvc" render={({ field }) => (
+                  <FormItem><FormLabel>CVC</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+              </div>
+
+              <Button type="submit" variant="neo" size="lg" className="w-full bg-primary text-primary-foreground" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Place Order
               </Button>
             </form>
           </Form>
@@ -140,18 +147,9 @@ export default function CheckoutPage() {
             ))}
           </div>
           <div className="mt-8 border-t-2 border-dashed border-foreground pt-6 space-y-2">
-            <div className="flex justify-between">
-              <p>Subtotal</p>
-              <p className="font-semibold">${subtotal.toFixed(2)}</p>
-            </div>
-            <div className="flex justify-between">
-              <p>Shipping</p>
-              <p className="font-semibold">${shippingCost.toFixed(2)}</p>
-            </div>
-            <div className="flex justify-between text-xl font-black">
-              <p>Total</p>
-              <p>${total.toFixed(2)}</p>
-            </div>
+            <div className="flex justify-between"><p>Subtotal</p><p className="font-semibold">${subtotal.toFixed(2)}</p></div>
+            <div className="flex justify-between"><p>Shipping</p><p className="font-semibold">${shippingCost.toFixed(2)}</p></div>
+            <div className="flex justify-between text-xl font-black"><p>Total</p><p>${total.toFixed(2)}</p></div>
           </div>
         </div>
       </div>

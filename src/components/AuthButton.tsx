@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Button } from './ui/button'
-import { User, LogOut } from 'lucide-react'
+import { User, LogOut, ShoppingCart, Settings } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +36,16 @@ export default async function AuthButton() {
           </DropdownMenuItem>
         )}
         <DropdownMenuItem asChild>
-          <Link href="/account">Account</Link>
+          <Link href="/account" className="flex items-center">
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Account</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/orders" className="flex items-center">
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            <span>My Orders</span>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <form action="/auth/signout" method="post" className="w-full">

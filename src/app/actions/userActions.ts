@@ -73,3 +73,36 @@ export async function updateUserRole(userId: string, role: 'user' | 'admin') {
     return { success: false, error: error.message }
   }
 }
+
+export async function getUserProfile() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { profile: null, error: "Not authenticated" }
+
+  const { data, error } = await supabase.from('profiles').select('first_name, last_name').eq('id', user.id).single()
+  
+  if (error) {
+    return { profile: null, error: error.message }
+  }
+  return { profile: data, error: null }
+}
+
+export async function updateUserProfile(formData: { first_name: string, last_name: string }) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: "Not authenticated" }
+
+  const parsedData = {
+    first_name: formData.first_name,
+    last_name: formData.last_name,
+    updated_at: new Date().toISOString(),
+  }
+
+  const { error } = await supabase.from('profiles').update(parsedData).eq('id', user.id)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+  revalidatePath('/account')
+  return { success: true }
+}

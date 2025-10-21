@@ -19,3 +19,27 @@ export type UserForAdmin = {
   email?: string;
   role?: 'user' | 'admin' | string | null;
 };
+
+export type OrderItem = {
+  id: string;
+  quantity: number;
+  price_at_order: number;
+  product_details: {
+    name: string;
+    image_url: string | null;
+  };
+};
+
+export type Order = {
+  id: string;
+  created_at: string;
+  total_amount: number;
+  status: string;
+  shipping_address: {
+    name: string;
+    address: string;
+    city: string;
+    zip: string;
+  };
+  order_items: OrderItem[];
+};
