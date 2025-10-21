@@ -15,17 +15,42 @@ import {
 } from "@/components/ui/navigation-menu"
 import AuthButton from "./AuthButton"
 import { createClient } from "@/lib/supabase/server"
+import React from "react"
+import { cn } from "@/lib/utils"
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-bold leading-none">{title}</div>
+          {children && <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>}
+        </a>
+      </NavigationMenuLink>
+    </li>
+  )
+})
+ListItem.displayName = "ListItem"
 
 export async function Navbar() {
-  const navLinks = [
-    { href: "/shop", label: "Shop All" },
-    { href: "/shop?category=Men", label: "Men" },
-    { href: "/shop?category=Women", label: "Women" },
-    { href: "/shop?category=Accessories", label: "Accessories" },
-  ]
-
   const supabase = createClient()
   const { data: products } = await supabase.from('natishop_products').select('id, name')
+  const { data: categories } = await supabase.from('natishop_categories').select('name').order('name')
+
+  const categoryLinks = categories?.map(c => ({ href: `/shop?category=${c.name}`, label: c.name })) ?? []
+  const allNavLinks = [{ href: "/shop", label: "Shop All" }, ...categoryLinks]
 
   return (
     <header className="sticky top-0 z-50 w-full border-b-2 border-foreground bg-background">
@@ -45,7 +70,7 @@ export async function Navbar() {
                 <span className="text-lg font-bold">NatiCloth</span>
               </Link>
               <nav className="flex flex-col space-y-4">
-                {navLinks.map(link => (
+                {allNavLinks.map(link => (
                   <Link
                     key={link.href}
                     href={link.href}
@@ -76,20 +101,35 @@ export async function Navbar() {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Shop</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                    {navLinks.map((link) => (
-                      <li key={link.href}>
-                        <NavigationMenuLink asChild>
-                          <a
-                            href={link.href}
-                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          >
-                            <div className="text-sm font-bold leading-none">{link.label}</div>
-                          </a>
-                        </NavigationMenuLink>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="grid w-[600px] grid-cols-[.75fr_1fr] gap-3 p-4 md:w-[500px] lg:w-[700px]">
+                    <div className="row-span-3">
+                      <NavigationMenuLink asChild>
+                        <a
+                          className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                          href="https://natiweb.vercel.app/pro/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <div className="mb-2 mt-4 text-lg font-bold text-primary">
+                            Get Nati Pro
+                          </div>
+                          <p className="text-sm leading-tight text-muted-foreground">
+                            Build and deploy modern web apps with an AI co-pilot.
+                          </p>
+                        </a>
+                      </NavigationMenuLink>
+                    </div>
+                    <ul className="col-start-2 grid grid-cols-2 gap-3">
+                      <ListItem href="/shop" title="Shop All" />
+                      {categoryLinks.map((link) => (
+                        <ListItem
+                          key={link.href}
+                          href={link.href}
+                          title={link.label}
+                        />
+                      ))}
+                    </ul>
+                  </div>
                 </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>
