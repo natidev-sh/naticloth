@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useCartStore } from "@/store/cart-store"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { CartDrawer } from "@/components/CartDrawer"
+import { SearchModal } from "@/components/SearchModal"
 
 export function Navbar() {
   const cartItems = useCartStore((state) => state.items)
@@ -75,10 +76,12 @@ export function Navbar() {
         </nav>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
-          <Button variant="ghost" size="icon" className="hidden md:inline-flex">
-            <Search className="h-5 w-5" />
-            <span className="sr-only">Search</span>
-          </Button>
+          <SearchModal>
+            <Button variant="ghost" size="icon" className="hidden md:inline-flex">
+              <Search className="h-5 w-5" />
+              <span className="sr-only">Search</span>
+            </Button>
+          </SearchModal>
           <CartDrawer>
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingBag className="h-5 w-5" />

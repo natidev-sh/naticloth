@@ -29,10 +29,10 @@ export default function Home() {
             </Button>
           </div>
           <div className="relative hidden h-80 w-full md:block">
-             <div className="absolute inset-0 -translate-x-4 translate-y-4 rounded-sm border-2 border-foreground bg-background p-2">
+             <div className="absolute inset-0 rounded-sm border-2 border-foreground bg-background p-2 transition-all neo-shadow">
                 <div className="h-full w-full overflow-hidden rounded-sm">
                     <Image 
-                        src="https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop"
+                        src="https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto-format&fit=crop"
                         alt="High fashion model"
                         fill
                         className="object-cover"

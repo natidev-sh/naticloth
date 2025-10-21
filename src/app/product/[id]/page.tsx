@@ -29,7 +29,7 @@ export default function ProductDetailPage() {
   return (
     <div className="container py-16 md:py-24">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-        <div className="relative aspect-square rounded-sm border-2 border-foreground bg-background p-2">
+        <div className="relative aspect-square rounded-sm border-2 border-foreground bg-background p-2 neo-shadow">
            <div className="h-full w-full overflow-hidden rounded-sm">
               <Image
                 src={product.image}
