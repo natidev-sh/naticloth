@@ -5,25 +5,22 @@ import { Auth } from "@supabase/auth-ui-react"
 import { ThemeSupa } from "@supabase/auth-ui-shared"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 
 export default function LoginPage() {
   const supabase = createClient()
   const router = useRouter()
-  const { toast } = useToast()
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         router.push('/')
-        toast({
-          title: "Successfully logged in!",
-        })
+        toast.success("Successfully logged in!")
       }
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase, router, toast])
+  }, [supabase, router])
 
   return (
     <div className="container flex min-h-[calc(100vh-160px)] items-center justify-center py-12">
