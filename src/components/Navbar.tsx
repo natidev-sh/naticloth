@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useCartStore } from "@/store/cart-store"
 import { ThemeToggle } from "@/components/ThemeToggle"
+import { CartDrawer } from "@/components/CartDrawer"
 
 export function Navbar() {
   const cartItems = useCartStore((state) => state.items)
@@ -78,7 +79,7 @@ export function Navbar() {
             <Search className="h-5 w-5" />
             <span className="sr-only">Search</span>
           </Button>
-          <Link href="/cart">
+          <CartDrawer>
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingBag className="h-5 w-5" />
               {totalItems > 0 && (
@@ -88,7 +89,7 @@ export function Navbar() {
               )}
               <span className="sr-only">Cart</span>
             </Button>
-          </Link>
+          </CartDrawer>
           <div className="hidden md:block">
             <ThemeToggle />
           </div>
