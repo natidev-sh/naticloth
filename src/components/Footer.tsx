@@ -35,9 +35,12 @@ export function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-8 border-t border-dashed pt-8 flex flex-col md:flex-row justify-between items-center">
+        <div className="mt-8 border-t border-dashed pt-8 flex flex-col md:flex-row justify-between items-center gap-2">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} NatiCloth Inc. All Rights Reserved.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Made with <a href="https://dyad.sh" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-foreground">nati</a>
           </p>
         </div>
       </div>
