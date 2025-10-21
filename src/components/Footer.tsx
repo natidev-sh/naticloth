@@ -1,5 +1,5 @@
-import { ShoppingBag } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 export function Footer() {
   return (
@@ -8,8 +8,7 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div className="flex flex-col items-start gap-4">
             <Link href="/" className="flex items-center space-x-2">
-              <ShoppingBag className="h-8 w-8" />
-              <span className="text-2xl font-black tracking-tighter">NatiCloth</span>
+              <Image src="/logo.png" alt="NatiCloth Logo" width={140} height={35} className="h-auto" />
             </Link>
             <p className="text-sm text-muted-foreground">
               High-fashion statements for the unapologetically bold.

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { ShoppingBag, Search, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -66,8 +67,7 @@ export async function Navbar() {
             </SheetTrigger>
             <SheetContent side="left" className="border-r-2 border-foreground">
               <Link href="/" className="mb-8 flex items-center">
-                <ShoppingBag className="h-6 w-6 mr-2" />
-                <span className="text-lg font-bold">NatiCloth</span>
+                <Image src="/logo.png" alt="NatiCloth Logo" width={120} height={30} className="h-auto" />
               </Link>
               <nav className="flex flex-col space-y-4">
                 {allNavLinks.map(link => (
@@ -87,10 +87,7 @@ export async function Navbar() {
         {/* Desktop Logo */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
-            <ShoppingBag className="h-8 w-8" />
-            <span className="text-2xl font-black tracking-tighter">
-              NatiCloth
-            </span>
+            <Image src="/logo.png" alt="NatiCloth Logo" width={140} height={35} className="h-auto" />
           </Link>
         </div>
 
