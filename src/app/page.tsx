@@ -14,6 +14,11 @@ export default async function Home() {
     .eq('featured', true)
     .limit(4)
 
+  const { data: categories } = await supabase
+    .from('natishop_categories')
+    .select('name, image_url')
+    .limit(3)
+
   return (
     <>
       {/* Hero Section */}
@@ -68,27 +73,20 @@ export default async function Home() {
             Shop by Category
           </h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            <Link href="/shop?category=Men" className="group relative block h-80 overflow-hidden rounded-sm border-2 border-foreground neo-shadow transition-all hover:-translate-y-1">
-              <Image src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1887&auto=format&fit=crop" alt="Men's Fashion" fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <h3 className="text-3xl font-black tracking-tighter text-white">Men</h3>
-              </div>
-            </Link>
-            <Link href="/shop?category=Women" className="group relative block h-80 overflow-hidden rounded-sm border-2 border-foreground neo-shadow transition-all hover:-translate-y-1">
-              <Image src="https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?q=80&w=1935&auto=format&fit=crop" alt="Women's Fashion" fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <h3 className="text-3xl font-black tracking-tighter text-white">Women</h3>
-              </div>
-            </Link>
-            <Link href="/shop?category=Accessories" className="group relative block h-80 overflow-hidden rounded-sm border-2 border-foreground neo-shadow transition-all hover:-translate-y-1">
-              <Image src="https://images.unsplash.com/photo-1588403153501-6a5de4234233?q=80&w=1887&auto=format&fit=crop" alt="Accessories" fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <h3 className="text-3xl font-black tracking-tighter text-white">Accessories</h3>
-              </div>
-            </Link>
+            {categories?.map(category => (
+              <Link key={category.name} href={`/shop?category=${category.name}`} className="group relative block h-80 overflow-hidden rounded-sm border-2 border-foreground neo-shadow transition-all hover:-translate-y-1">
+                <Image 
+                  src={category.image_url || "https://images.unsplash.com/photo-1588403153501-6a5de4234233?q=80&w=1887&auto=format&fit=crop"} 
+                  alt={`${category.name} category`} 
+                  fill 
+                  className="object-cover transition-transform duration-300 group-hover:scale-105" 
+                />
+                <div className="absolute inset-0 bg-black/40" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <h3 className="text-3xl font-black tracking-tighter text-white">{category.name}</h3>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

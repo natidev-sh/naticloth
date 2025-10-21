@@ -11,6 +11,7 @@ import {
 import { CategoryForm } from "./CategoryForm"
 import { DeleteCategoryButton } from "./DeleteCategoryButton"
 import { Category } from "@/types"
+import Image from "next/image"
 
 export function CategoryTable({ categories }: { categories: Category[] }) {
   return (
@@ -18,6 +19,7 @@ export function CategoryTable({ categories }: { categories: Category[] }) {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[80px]">Image</TableHead>
             <TableHead>Name</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -25,6 +27,22 @@ export function CategoryTable({ categories }: { categories: Category[] }) {
         <TableBody>
           {categories.map((category) => (
             <TableRow key={category.id}>
+              <TableCell>
+                <div className="relative h-12 w-12 overflow-hidden rounded-sm border-2 border-foreground">
+                  {category.image_url ? (
+                    <Image
+                      src={category.image_url}
+                      alt={category.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-muted">
+                      <span className="text-xs text-muted-foreground">No Img</span>
+                    </div>
+                  )}
+                </div>
+              </TableCell>
               <TableCell className="font-medium">{category.name}</TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">

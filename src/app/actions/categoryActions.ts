@@ -6,6 +6,7 @@ import { z } from "zod"
 
 const categorySchema = z.object({
   name: z.string().min(1, "Name is required"),
+  image_url: z.string().url("Please provide a valid URL").optional().nullable(),
 })
 
 export async function upsertCategory(formData: unknown, id?: string) {
@@ -36,6 +37,7 @@ export async function upsertCategory(formData: unknown, id?: string) {
 
   revalidatePath("/admin")
   revalidatePath("/shop")
+  revalidatePath("/")
 
   return { success: true }
 }
@@ -59,6 +61,7 @@ export async function deleteCategory(id: string) {
 
   revalidatePath("/admin")
   revalidatePath("/shop")
+  revalidatePath("/")
 
   return { success: true }
 }

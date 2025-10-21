@@ -4,6 +4,9 @@ import { ProductTable } from '@/components/admin/ProductTable'
 import { ProductForm } from '@/components/admin/ProductForm'
 import { CategoryTable } from '@/components/admin/CategoryTable'
 import { CategoryForm } from '@/components/admin/CategoryForm'
+import { UserTable } from '@/components/admin/UserTable'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { UserForAdmin } from '@/types'
 
 export default async function AdminPage() {
   const supabase = createClient()
@@ -33,8 +36,24 @@ export default async function AdminPage() {
 
   const productsData = supabase.from('natishop_products').select('*').order('created_at', { ascending: false });
   const categoriesData = supabase.from('natishop_categories').select('*').order('name', { ascending: true });
+  const profilesData = supabase.from('profiles').select('id, role');
 
-  const [{ data: products }, { data: categories }] = await Promise.all([productsData, categoriesData]);
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const { data: authUsers, error: authUsersError } = await supabaseAdmin.auth.admin.listUsers();
+
+  const [{ data: products }, { data: categories }, { data: profiles }] = await Promise.all([productsData, categoriesData, profilesData]);
+
+  const usersForAdmin: UserForAdmin[] = authUsersError ? [] : authUsers.users.map(authUser => {
+    const userProfile = profiles?.find(p => p.id === authUser.id);
+    return {
+      id: authUser.id,
+      email: authUser.email,
+      role: userProfile?.role ?? 'user',
+    };
+  });
 
   return (
     <div className="container py-16">
@@ -63,6 +82,18 @@ export default async function AdminPage() {
             <CategoryForm />
           </div>
           <CategoryTable categories={categories ?? []} />
+        </section>
+
+        <section>
+          <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
+            <div>
+              <h2 className="text-3xl font-black tracking-tighter">Manage Users</h2>
+              <p className="mt-1 text-lg text-muted-foreground">
+                View and manage user roles.
+              </p>
+            </div>
+          </div>
+          <UserTable users={usersForAdmin} currentUserId={user.id} />
         </section>
       </div>
     </div>

@@ -11,4 +11,11 @@ export type Product = {
 export type Category = {
   id: string;
   name: string;
+  image_url?: string | null;
+};
+
+export type UserForAdmin = {
+  id: string;
+  email?: string;
+  role?: 'user' | 'admin' | string | null;
 };
