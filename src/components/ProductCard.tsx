@@ -1,9 +1,12 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
 import { Product } from "@/types"
 import { Button } from "@/components/ui/button"
 import { useCartStore } from "@/store/cart-store"
 import { toast } from "sonner"
+import { ShoppingBag } from "lucide-react"
 
 interface ProductCardProps {
   product: Product
@@ -20,13 +23,19 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-sm border-2 border-foreground bg-background transition-all hover:-translate-y-1 hover:neo-shadow">
       <Link href={`/product/${product.id}`}>
-        <div className="aspect-square overflow-hidden">
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-          />
+        <div className="aspect-square overflow-hidden bg-muted">
+          {product.image_urls && product.image_urls[0] ? (
+            <Image
+              src={product.image_urls[0]}
+              alt={product.name}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <ShoppingBag className="h-16 w-16 text-muted-foreground/20" />
+            </div>
+          )}
         </div>
       </Link>
       <div className="flex flex-1 flex-col p-4">

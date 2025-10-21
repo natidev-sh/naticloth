@@ -1,9 +1,9 @@
 export type Product = {
-  id: number;
+  id: string;
   name: string;
   category: 'Men' | 'Women' | 'Accessories';
   price: number;
-  image: string;
-  description: string;
-  featured?: boolean;
+  image_urls: string[] | null;
+  description: string | null;
+  featured?: boolean | null;
 };

@@ -1,17 +1,18 @@
-"use client"
-
-import { useSearchParams } from "next/navigation"
 import { ProductCard } from "@/components/ProductCard"
-import { products } from "@/lib/products"
 import { ShopFilters } from "@/components/ShopFilters"
+import { createClient } from "@/lib/supabase/server"
 
-export default function ShopPage() {
-  const searchParams = useSearchParams()
-  const category = searchParams.get("category")
+export default async function ShopPage({ searchParams }: { searchParams: { category?: string } }) {
+  const category = searchParams.category
+  const supabase = createClient()
 
-  const filteredProducts = category
-    ? products.filter(p => p.category === category)
-    : products
+  let query = supabase.from('natishop_products').select('*')
+
+  if (category && category !== "All") {
+    query = query.eq('category', category)
+  }
+
+  const { data: filteredProducts } = await query.order('created_at', { ascending: false })
 
   return (
     <div className="container py-16 md:py-24">
@@ -20,7 +21,7 @@ export default function ShopPage() {
         Explore our curated collection of high-fashion statements.
       </p>
       <ShopFilters />
-      {filteredProducts.length > 0 ? (
+      {filteredProducts && filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {filteredProducts.map(product => (
             <ProductCard key={product.id} product={product} />

@@ -33,13 +33,15 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
               <div className="flex flex-col gap-6">
                 {items.map((item) => (
                   <div key={item.id} className="flex items-start gap-4">
-                    <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-sm border-2 border-foreground">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                      />
+                    <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-sm border-2 border-foreground bg-muted">
+                      {item.image_urls && item.image_urls[0] ? (
+                        <Image
+                          src={item.image_urls[0]}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : null}
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold">{item.name}</h3>

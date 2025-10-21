@@ -14,14 +14,18 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 import AuthButton from "./AuthButton"
+import { createClient } from "@/lib/supabase/server"
 
-export function Navbar() {
+export async function Navbar() {
   const navLinks = [
     { href: "/shop", label: "Shop All" },
     { href: "/shop?category=Men", label: "Men" },
     { href: "/shop?category=Women", label: "Women" },
     { href: "/shop?category=Accessories", label: "Accessories" },
   ]
+
+  const supabase = createClient()
+  const { data: products } = await supabase.from('natishop_products').select('id, name')
 
   return (
     <header className="sticky top-0 z-50 w-full border-b-2 border-foreground bg-background">
@@ -100,7 +104,7 @@ export function Navbar() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
-          <SearchModal>
+          <SearchModal products={products ?? []}>
             <Button variant="ghost" size="icon" className="hidden md:inline-flex">
               <Search className="h-5 w-5" />
               <span className="sr-only">Search</span>

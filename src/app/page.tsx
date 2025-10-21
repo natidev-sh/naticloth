@@ -1,14 +1,17 @@
-"use client"
-
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { products } from "@/lib/products"
 import { ProductCard } from "@/components/ProductCard"
 import { ArrowRight } from "lucide-react"
 import Image from "next/image"
+import { createClient } from "@/lib/supabase/server"
 
-export default function Home() {
-  const featuredProducts = products.filter(p => p.featured)
+export default async function Home() {
+  const supabase = createClient()
+  const { data: featuredProducts } = await supabase
+    .from('natishop_products')
+    .select('*')
+    .eq('featured', true)
+    .limit(4)
 
   return (
     <>
@@ -50,7 +53,7 @@ export default function Home() {
             Featured Pieces
           </h2>
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredProducts.map(product => (
+            {featuredProducts?.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

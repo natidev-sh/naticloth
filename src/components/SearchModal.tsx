@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { File, Search as SearchIcon } from "lucide-react"
+import { File } from "lucide-react"
 
 import {
   CommandDialog,
@@ -12,9 +12,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
-import { products } from "@/lib/products"
+import { Product } from "@/types"
 
-export function SearchModal({ children }: { children: React.ReactNode }) {
+type SearchableProduct = Pick<Product, 'id' | 'name'>
+
+export function SearchModal({ children, products }: { children: React.ReactNode, products: SearchableProduct[] }) {
   const [open, setOpen] = React.useState(false)
   const router = useRouter()
 

@@ -1,42 +1,48 @@
-"use client"
-
-import { useParams } from "next/navigation"
-import { products } from "@/lib/products"
+import { createClient } from "@/lib/supabase/server"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { useCartStore } from "@/store/cart-store"
 import { notFound } from "next/navigation"
-import { toast } from "sonner"
 import { ProductCard } from "@/components/ProductCard"
+import { AddToCartButton } from "@/components/AddToCartButton"
+import { ShoppingBag } from "lucide-react"
 
-export default function ProductDetailPage() {
-  const { id } = useParams()
-  const addItem = useCartStore((state) => state.addItem)
+export default async function ProductDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params
+  const supabase = createClient()
   
-  const product = products.find((p) => p.id === Number(id))
+  const { data: product } = await supabase
+    .from('natishop_products')
+    .select('*')
+    .eq('id', id)
+    .single()
 
   if (!product) {
     notFound()
   }
 
-  const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4)
-
-  const handleAddToCart = () => {
-    addItem(product)
-    toast.success(`${product.name} added to cart!`)
-  }
+  const { data: relatedProducts } = await supabase
+    .from('natishop_products')
+    .select('*')
+    .eq('category', product.category)
+    .neq('id', product.id)
+    .limit(4)
 
   return (
     <div className="container py-16 md:py-24">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         <div className="relative aspect-square rounded-sm border-2 border-foreground bg-background p-2 neo-shadow">
-           <div className="h-full w-full overflow-hidden rounded-sm">
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                className="object-cover"
-              />
+           <div className="h-full w-full overflow-hidden rounded-sm bg-muted">
+              {product.image_urls && product.image_urls[0] ? (
+                <Image
+                  src={product.image_urls[0]}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  <ShoppingBag className="h-24 w-24 text-muted-foreground/20" />
+                </div>
+              )}
            </div>
         </div>
         <div className="flex flex-col justify-center">
@@ -45,14 +51,12 @@ export default function ProductDetailPage() {
           <p className="mt-4 text-3xl font-black">${product.price.toFixed(2)}</p>
           <p className="mt-6 text-lg text-muted-foreground">{product.description}</p>
           <div className="mt-8">
-            <Button variant="neo" size="lg" className="w-full md:w-auto" onClick={handleAddToCart}>
-              Add to Cart
-            </Button>
+            <AddToCartButton product={product} />
           </div>
         </div>
       </div>
 
-      {relatedProducts.length > 0 && (
+      {relatedProducts && relatedProducts.length > 0 && (
         <div className="mt-24">
           <h2 className="text-3xl font-black tracking-tighter md:text-4xl mb-8">You Might Also Like</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
