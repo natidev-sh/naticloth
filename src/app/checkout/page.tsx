@@ -20,6 +20,9 @@ import {
 import { toast } from "sonner"
 import { createOrder } from "@/app/actions/orderActions"
 import { Loader2 } from "lucide-react"
+import { useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { CreditCard } from "@/components/CreditCard"
 
 const checkoutSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -54,6 +57,24 @@ export default function CheckoutPage() {
       card_cvc: "",
     },
   })
+
+  const watchedValues = form.watch()
+
+  useEffect(() => {
+    const supabase = createClient()
+    const prefillUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        form.setValue('email', user.email || '')
+        const { data: profile } = await supabase.from('profiles').select('first_name, last_name').eq('id', user.id).single()
+        if (profile) {
+          const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ')
+          form.setValue('name', fullName)
+        }
+      }
+    }
+    prefillUserData()
+  }, [form])
 
   const onSubmit = async (values: CheckoutFormValues) => {
     const result = await createOrder(items, values)
@@ -126,31 +147,38 @@ export default function CheckoutPage() {
             </form>
           </Form>
         </div>
-        <div className="rounded-sm border-2 border-foreground p-8 neo-shadow">
-          <h2 className="mb-6 text-2xl font-bold">Order Summary</h2>
-          <div className="space-y-4">
-            {items.map(item => (
-              <div key={item.id} className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-sm border-2 border-foreground bg-muted">
-                    {item.image_urls && item.image_urls[0] && (
-                      <Image src={item.image_urls[0]} alt={item.name} fill className="object-cover" />
-                    )}
+        <div className="space-y-8">
+          <div className="rounded-sm border-2 border-foreground p-8 neo-shadow">
+            <h2 className="mb-6 text-2xl font-bold">Order Summary</h2>
+            <div className="space-y-4">
+              {items.map(item => (
+                <div key={item.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-sm border-2 border-foreground bg-muted">
+                      {item.image_urls && item.image_urls[0] && (
+                        <Image src={item.image_urls[0]} alt={item.name} fill className="object-cover" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-bold">{item.name}</p>
+                      <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                  </div>
+                  <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
                 </div>
-                <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="mt-8 border-t-2 border-dashed border-foreground pt-6 space-y-2">
+              <div className="flex justify-between"><p>Subtotal</p><p className="font-semibold">${subtotal.toFixed(2)}</p></div>
+              <div className="flex justify-between"><p>Shipping</p><p className="font-semibold">${shippingCost.toFixed(2)}</p></div>
+              <div className="flex justify-between text-xl font-black"><p>Total</p><p>${total.toFixed(2)}</p></div>
+            </div>
           </div>
-          <div className="mt-8 border-t-2 border-dashed border-foreground pt-6 space-y-2">
-            <div className="flex justify-between"><p>Subtotal</p><p className="font-semibold">${subtotal.toFixed(2)}</p></div>
-            <div className="flex justify-between"><p>Shipping</p><p className="font-semibold">${shippingCost.toFixed(2)}</p></div>
-            <div className="flex justify-between text-xl font-black"><p>Total</p><p>${total.toFixed(2)}</p></div>
-          </div>
+          <CreditCard
+            cardHolder={watchedValues.name || ''}
+            cardNumber={watchedValues.card_number || ''}
+            cardExpiry={watchedValues.card_expiry || ''}
+          />
         </div>
       </div>
     </div>
