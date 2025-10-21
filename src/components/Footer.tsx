@@ -40,7 +40,7 @@ export function Footer() {
             © {new Date().getFullYear()} NatiCloth Inc. All Rights Reserved.
           </p>
           <p className="text-xs text-muted-foreground">
-            Made with <a href="https://dyad.sh" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-foreground">nati</a>
+            Made with <a href="https://natiweb.vercel.app/" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-foreground">nati</a>
           </p>
         </div>
       </div>
