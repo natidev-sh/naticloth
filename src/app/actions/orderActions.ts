@@ -22,10 +22,24 @@ export async function createOrder(cartItems: CartItem[], shippingDetails: Shippi
     return { success: false, error: "You must be logged in to place an order." }
   }
 
-  const totalAmount = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0) + 5.00 // +5 for shipping
-
   try {
-    // 1. Create the order
+    // 1. Validate that all products in the cart still exist
+    const productIds = cartItems.map(item => item.id);
+    const { data: existingProducts, error: validationError } = await supabase
+      .from('natishop_products')
+      .select('id')
+      .in('id', productIds);
+
+    if (validationError) throw validationError;
+
+    if (existingProducts.length !== productIds.length) {
+      return { success: false, error: "One or more items in your cart are no longer available. Please review your cart." };
+    }
+
+    // If validation passes, proceed with order creation
+    const totalAmount = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0) + 5.00 // +5 for shipping
+
+    // 2. Create the order
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -43,7 +57,7 @@ export async function createOrder(cartItems: CartItem[], shippingDetails: Shippi
 
     if (orderError) throw orderError
 
-    // 2. Create the order items
+    // 3. Create the order items
     const orderItemsToInsert = cartItems.map(item => ({
       order_id: order.id,
       product_id: item.id,
