@@ -5,8 +5,7 @@ import { ProductForm } from '@/components/admin/ProductForm'
 import { CategoryTable } from '@/components/admin/CategoryTable'
 import { CategoryForm } from '@/components/admin/CategoryForm'
 import { UserTable } from '@/components/admin/UserTable'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
-import { UserForAdmin } from '@/types'
+import { getUsersForAdmin } from '@/app/actions/userActions'
 
 export default async function AdminPage() {
   const supabase = createClient()
@@ -36,24 +35,14 @@ export default async function AdminPage() {
 
   const productsData = supabase.from('natishop_products').select('*').order('created_at', { ascending: false });
   const categoriesData = supabase.from('natishop_categories').select('*').order('name', { ascending: true });
-  const profilesData = supabase.from('profiles').select('id, role');
+  
+  const { users: usersForAdmin, error: usersError } = await getUsersForAdmin();
 
-  const supabaseAdmin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-  const { data: authUsers, error: authUsersError } = await supabaseAdmin.auth.admin.listUsers();
+  if (usersError) {
+    console.error("Failed to load users for admin panel:", usersError);
+  }
 
-  const [{ data: products }, { data: categories }, { data: profiles }] = await Promise.all([productsData, categoriesData, profilesData]);
-
-  const usersForAdmin: UserForAdmin[] = authUsersError ? [] : authUsers.users.map(authUser => {
-    const userProfile = profiles?.find(p => p.id === authUser.id);
-    return {
-      id: authUser.id,
-      email: authUser.email,
-      role: userProfile?.role ?? 'user',
-    };
-  });
+  const [{ data: products }, { data: categories }] = await Promise.all([productsData, categoriesData]);
 
   return (
     <div className="container py-16">
