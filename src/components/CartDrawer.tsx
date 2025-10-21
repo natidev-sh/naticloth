@@ -84,9 +84,11 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
                   <span>Subtotal</span>
                   <span>${subtotal.toFixed(2)}</span>
                 </div>
-                <Button variant="neo" size="lg" className="w-full bg-primary text-primary-foreground">
-                  Checkout
-                </Button>
+                <SheetClose asChild>
+                  <Button asChild variant="neo" size="lg" className="w-full bg-primary text-primary-foreground">
+                    <Link href="/checkout">Checkout</Link>
+                  </Button>
+                </SheetClose>
               </div>
             </SheetFooter>
           </>

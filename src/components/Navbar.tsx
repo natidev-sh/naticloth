@@ -3,7 +3,6 @@ import { ShoppingBag, Search, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ThemeToggle } from "@/components/ThemeToggle"
-import { CartDrawer } from "@/components/CartDrawer"
 import { SearchModal } from "@/components/SearchModal"
 import {
   NavigationMenu,
@@ -17,6 +16,7 @@ import AuthButton from "./AuthButton"
 import { createClient } from "@/lib/supabase/server"
 import React from "react"
 import { cn } from "@/lib/utils"
+import { CartButton } from "./CartButton"
 
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
@@ -150,12 +150,7 @@ export async function Navbar() {
               <span className="sr-only">Search</span>
             </Button>
           </SearchModal>
-          <CartDrawer>
-            <Button variant="ghost" size="icon">
-              <ShoppingBag className="h-5 w-5" />
-              <span className="sr-only">Cart</span>
-            </Button>
-          </CartDrawer>
+          <CartButton />
           <ThemeToggle />
           <AuthButton />
         </div>
