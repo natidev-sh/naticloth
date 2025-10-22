@@ -14,6 +14,7 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import { Product } from "@/types"
+import { Button } from "@/components/ui/button" // Import Button for pills
 
 // Update SearchableProduct type to include image_urls and category
 type SearchableProduct = Pick<Product, 'id' | 'name' | 'image_urls' | 'category'>
@@ -39,6 +40,8 @@ export function SearchModal({ children, products }: { children: React.ReactNode,
     command()
   }, [])
 
+  const smartCategories = ["Men", "Women", "Accessories"]; // Define smart categories
+
   return (
     <>
       <div onClick={() => setOpen(true)}>
@@ -48,6 +51,24 @@ export function SearchModal({ children, products }: { children: React.ReactNode,
         <CommandInput placeholder="Search for products or categories..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
+          
+          <CommandGroup heading="Smart Categories">
+            <div className="flex flex-wrap gap-2 p-2">
+              {smartCategories.map((category) => (
+                <Button
+                  key={category}
+                  variant="outline"
+                  className="nati-pill" // Apply the custom pill style
+                  onClick={() => {
+                    runCommand(() => router.push(`/shop?category=${category}`))
+                  }}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </CommandGroup>
+
           <CommandGroup heading="Products">
             {products.map((product) => (
               <CommandItem
