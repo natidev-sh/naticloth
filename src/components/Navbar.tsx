@@ -46,7 +46,8 @@ ListItem.displayName = "ListItem"
 
 export async function Navbar() {
   const supabase = createClient()
-  const { data: products } = await supabase.from('natishop_products').select('id, name')
+  // Fetch image_urls and category for search modal
+  const { data: products } = await supabase.from('natishop_products').select('id, name, image_urls, category')
   const { data: categories } = await supabase.from('natishop_categories').select('name').order('name')
 
   const categoryLinks = categories?.map(c => ({ href: `/shop?category=${c.name}`, label: c.name })) ?? []
