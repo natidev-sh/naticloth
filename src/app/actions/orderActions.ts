@@ -14,7 +14,7 @@ interface ShippingDetails {
   zip: string;
 }
 
-// Helper function to validate UUID format
+// Helper function to validate UUID format (client-side check for basic input validation)
 function isValidUuid(uuid: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
@@ -29,71 +29,22 @@ export async function createOrder(cartItems: CartItem[], shippingDetails: Shippi
   }
 
   try {
-    // 1. Validate UUID format for all product IDs in the cart
+    // Perform client-side UUID format validation
     const invalidUuidProducts = cartItems.filter(item => !isValidUuid(item.id));
     if (invalidUuidProducts.length > 0) {
       const invalidNames = invalidUuidProducts.map(p => p.name).join(', ');
       const invalidIds = invalidUuidProducts.map(p => p.id).join(', ');
-      console.error("Invalid product IDs found in cart:", invalidIds);
       return { success: false, error: `Invalid product IDs found in cart: ${invalidNames}. Please ensure all product IDs are valid. (IDs: ${invalidIds})` };
     }
 
-    const productIdsInCart = cartItems.map(item => item.id);
-    console.log("Product IDs in cart:", productIdsInCart); // Debugging log
-
-    // 2. Validate that all products in the cart still exist in the database
-    const { data: existingProductsData, error: validationError } = await supabase
-      .from('natishop_products')
-      .select('id, name')
-      .in('id', productIdsInCart);
-
-    if (validationError) throw validationError;
-
-    const existingProductIds = new Set(existingProductsData.map(p => p.id));
-    console.log("Existing product IDs from DB:", Array.from(existingProductIds)); // Debugging log
-
-    const validCartItems = cartItems.filter(item => existingProductIds.has(item.id));
-
-    if (validCartItems.length === 0) {
-      return { success: false, error: "No valid items found in your cart to place an order." };
+    if (cartItems.length === 0) {
+      return { success: false, error: "Your cart is empty." };
     }
 
-    if (validCartItems.length !== cartItems.length) {
-      const missingProductNames = cartItems
-        .filter(item => !existingProductIds.has(item.id))
-        .map(item => item.name);
-      const missingProductIds = cartItems
-        .filter(item => !existingProductIds.has(item.id))
-        .map(item => item.id);
-      
-      console.error("Missing product IDs:", missingProductIds); // Debugging log
-      return { success: false, error: `The following products are no longer available: ${missingProductNames.join(', ')}. Please remove them from your cart. (IDs: ${missingProductIds.join(', ')})` };
-    }
+    const totalAmount = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0) + 5.00 // +5 for shipping
 
-    // If all validations pass, proceed with order creation
-    const totalAmount = validCartItems.reduce((acc, item) => acc + item.price * item.quantity, 0) + 5.00 // +5 for shipping
-
-    // 3. Create the order
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert({
-        user_id: user.id,
-        total_amount: totalAmount,
-        shipping_address: {
-          name: shippingDetails.name,
-          address: shippingDetails.address,
-          city: shippingDetails.city,
-          zip: shippingDetails.zip,
-        },
-      })
-      .select()
-      .single()
-
-    if (orderError) throw orderError
-
-    // 4. Create the order items using only validCartItems
-    const orderItemsToInsert = validCartItems.map(item => ({
-      order_id: order.id,
+    // Prepare order items for the database function
+    const orderItemsForDb = cartItems.map(item => ({
       product_id: item.id,
       quantity: item.quantity,
       price_at_order: item.price,
@@ -101,14 +52,28 @@ export async function createOrder(cartItems: CartItem[], shippingDetails: Shippi
         name: item.name,
         image_url: item.image_urls?.[0] ?? null,
       }
-    }))
+    }));
 
-    const { error: itemsError } = await supabase.from("order_items").insert(orderItemsToInsert)
+    // Call the new Supabase function to create the order atomically
+    const { data: orderId, error: dbFunctionError } = await supabase.rpc('create_full_order', {
+      p_user_id: user.id,
+      p_total_amount: totalAmount,
+      p_shipping_address: {
+        name: shippingDetails.name,
+        address: shippingDetails.address,
+        city: shippingDetails.city,
+        zip: shippingDetails.zip,
+      },
+      p_order_items: orderItemsForDb,
+    });
 
-    if (itemsError) throw itemsError
+    if (dbFunctionError) {
+      console.error("Supabase function error:", dbFunctionError.message);
+      return { success: false, error: dbFunctionError.message };
+    }
 
     revalidatePath("/orders")
-    return { success: true, orderId: order.id }
+    return { success: true, orderId: orderId }
 
   } catch (error: any) {
     console.error("Error creating order:", error)
