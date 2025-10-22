@@ -14,6 +14,12 @@ interface ShippingDetails {
   zip: string;
 }
 
+// Helper function to validate UUID format
+function isValidUuid(uuid: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
 export async function createOrder(cartItems: CartItem[], shippingDetails: ShippingDetails) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -23,16 +29,29 @@ export async function createOrder(cartItems: CartItem[], shippingDetails: Shippi
   }
 
   try {
-    // 1. Validate that all products in the cart still exist and filter out any missing ones
+    // 1. Validate UUID format for all product IDs in the cart
+    const invalidUuidProducts = cartItems.filter(item => !isValidUuid(item.id));
+    if (invalidUuidProducts.length > 0) {
+      const invalidNames = invalidUuidProducts.map(p => p.name).join(', ');
+      const invalidIds = invalidUuidProducts.map(p => p.id).join(', ');
+      console.error("Invalid product IDs found in cart:", invalidIds);
+      return { success: false, error: `Invalid product IDs found in cart: ${invalidNames}. Please ensure all product IDs are valid. (IDs: ${invalidIds})` };
+    }
+
     const productIdsInCart = cartItems.map(item => item.id);
+    console.log("Product IDs in cart:", productIdsInCart); // Debugging log
+
+    // 2. Validate that all products in the cart still exist in the database
     const { data: existingProductsData, error: validationError } = await supabase
       .from('natishop_products')
-      .select('id, name') // Select name to provide better error message
+      .select('id, name')
       .in('id', productIdsInCart);
 
     if (validationError) throw validationError;
 
     const existingProductIds = new Set(existingProductsData.map(p => p.id));
+    console.log("Existing product IDs from DB:", Array.from(existingProductIds)); // Debugging log
+
     const validCartItems = cartItems.filter(item => existingProductIds.has(item.id));
 
     if (validCartItems.length === 0) {
@@ -43,13 +62,18 @@ export async function createOrder(cartItems: CartItem[], shippingDetails: Shippi
       const missingProductNames = cartItems
         .filter(item => !existingProductIds.has(item.id))
         .map(item => item.name);
-      return { success: false, error: `The following products are no longer available: ${missingProductNames.join(', ')}. Please remove them from your cart.` };
+      const missingProductIds = cartItems
+        .filter(item => !existingProductIds.has(item.id))
+        .map(item => item.id);
+      
+      console.error("Missing product IDs:", missingProductIds); // Debugging log
+      return { success: false, error: `The following products are no longer available: ${missingProductNames.join(', ')}. Please remove them from your cart. (IDs: ${missingProductIds.join(', ')})` };
     }
 
-    // If validation passes, proceed with order creation
+    // If all validations pass, proceed with order creation
     const totalAmount = validCartItems.reduce((acc, item) => acc + item.price * item.quantity, 0) + 5.00 // +5 for shipping
 
-    // 2. Create the order
+    // 3. Create the order
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -67,7 +91,7 @@ export async function createOrder(cartItems: CartItem[], shippingDetails: Shippi
 
     if (orderError) throw orderError
 
-    // 3. Create the order items using only validCartItems
+    // 4. Create the order items using only validCartItems
     const orderItemsToInsert = validCartItems.map(item => ({
       order_id: order.id,
       product_id: item.id,
