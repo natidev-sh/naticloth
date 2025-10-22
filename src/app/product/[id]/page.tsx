@@ -19,11 +19,15 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 
+// Define a more explicit props interface to satisfy the Next.js build process
+interface ProductDetailPageProps {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
 export default async function ProductDetailPage({
   params,
-}: {
-  params: { id: string };
-}) {
+}: ProductDetailPageProps) {
   const { id } = params
   const supabase = createClient()
   
