@@ -19,7 +19,14 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
+interface ProductDetailPageProps {
+  params: {
+    id: string;
+  };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const { id } = params
   const supabase = createClient()
   
