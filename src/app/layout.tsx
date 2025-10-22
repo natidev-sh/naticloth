@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Toaster } from "@/components/ui/sonner";
+import { TemplateSelector } from "@/components/TemplateSelector"; // Import TemplateSelector
 
 export const metadata: Metadata = {
   title: "NatiCloth - Modern Clothing",
@@ -26,6 +27,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="flex min-h-screen flex-col">
+            <TemplateSelector /> {/* Placed above Navbar */}
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />
