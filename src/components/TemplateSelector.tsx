@@ -12,7 +12,7 @@ import {
 export function TemplateSelector() {
   const templates = [
     { name: "NatiCloth (Current)", url: "https://natiweb.vercel.app/templates/naticloth" },
-    { name: "NatiMusic", url: "https://natiweb.vercel.app/templates/natimusic" },
+    { name: "NatiMusic", url: "https://neon-beats.vercel.app/" },
     { name: "NatiBlog", url: "https://natiweb.vercel.app/templates/natiblog" },
     { name: "NatiPortfolio", url: "https://natiweb.vercel.app/templates/natiportfolio" },
   ]
