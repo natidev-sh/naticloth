@@ -23,21 +23,31 @@ export async function createOrder(cartItems: CartItem[], shippingDetails: Shippi
   }
 
   try {
-    // 1. Validate that all products in the cart still exist
-    const productIds = cartItems.map(item => item.id);
-    const { data: existingProducts, error: validationError } = await supabase
+    // 1. Validate that all products in the cart still exist and filter out any missing ones
+    const productIdsInCart = cartItems.map(item => item.id);
+    const { data: existingProductsData, error: validationError } = await supabase
       .from('natishop_products')
-      .select('id')
-      .in('id', productIds);
+      .select('id, name') // Select name to provide better error message
+      .in('id', productIdsInCart);
 
     if (validationError) throw validationError;
 
-    if (existingProducts.length !== productIds.length) {
-      return { success: false, error: "One or more items in your cart are no longer available. Please review your cart." };
+    const existingProductIds = new Set(existingProductsData.map(p => p.id));
+    const validCartItems = cartItems.filter(item => existingProductIds.has(item.id));
+
+    if (validCartItems.length === 0) {
+      return { success: false, error: "No valid items found in your cart to place an order." };
+    }
+
+    if (validCartItems.length !== cartItems.length) {
+      const missingProductNames = cartItems
+        .filter(item => !existingProductIds.has(item.id))
+        .map(item => item.name);
+      return { success: false, error: `The following products are no longer available: ${missingProductNames.join(', ')}. Please remove them from your cart.` };
     }
 
     // If validation passes, proceed with order creation
-    const totalAmount = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0) + 5.00 // +5 for shipping
+    const totalAmount = validCartItems.reduce((acc, item) => acc + item.price * item.quantity, 0) + 5.00 // +5 for shipping
 
     // 2. Create the order
     const { data: order, error: orderError } = await supabase
@@ -57,8 +67,8 @@ export async function createOrder(cartItems: CartItem[], shippingDetails: Shippi
 
     if (orderError) throw orderError
 
-    // 3. Create the order items
-    const orderItemsToInsert = cartItems.map(item => ({
+    // 3. Create the order items using only validCartItems
+    const orderItemsToInsert = validCartItems.map(item => ({
       order_id: order.id,
       product_id: item.id,
       quantity: item.quantity,
